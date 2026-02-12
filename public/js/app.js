@@ -1,6 +1,6 @@
 const socket = io({ autoConnect: false });
 let currentUser = null;
-let currentMode = 'classic';
+let currentGame = 'DICE';
 
 // --- AUTH ---
 async function login() {
@@ -16,22 +16,27 @@ async function login() {
         if(data.token) {
             localStorage.setItem('token', data.token);
             document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
             connectSocket(data.token);
         } else {
-            document.getElementById('auth-msg').innerText = data.error;
+            const err = document.getElementById('auth-msg');
+            err.innerText = data.error;
+            setTimeout(() => err.innerText = '', 3000);
         }
     } catch(e) { console.error(e); }
 }
 
 async function register() {
+    // Reusing the same inputs for simplicity in this retro UI
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
+    if(!u || !p) return alert("Fill user/pass");
     await fetch('/api/register', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({username: u, password: p})
     });
-    alert('Registered! Please login.');
+    alert('REGISTERED! NOW LOGIN.');
 }
 
 function connectSocket(token) {
@@ -39,176 +44,163 @@ function connectSocket(token) {
     socket.connect();
 }
 
-// --- SOCKET EVENTS ---
-socket.on('connect', () => {
-    document.getElementById('conn-status').innerText = "LIVE: PH";
-    document.getElementById('conn-status').classList.add('text-green');
-});
+function logout() {
+    localStorage.removeItem('token');
+    location.reload();
+}
 
+// --- STATE MANAGEMENT ---
 socket.on('init', (data) => {
     currentUser = data.user;
+    document.getElementById('my-username').innerText = currentUser.username;
     document.getElementById('credit-bal').innerText = currentUser.credits;
+    document.getElementById('mini-bal').innerText = currentUser.credits; // sidebar
     renderChat(data.chat);
     updateState(data.state);
 });
 
-socket.on('state_update', (state) => {
-    updateState(state);
-});
-
-socket.on('chat_new', (msg) => {
-    appendChat(msg);
-});
-
+socket.on('state_update', updateState);
 socket.on('balance_update', (amt) => {
     document.getElementById('credit-bal').innerText = amt;
-});
-
-socket.on('classic_phase', (data) => {
-    document.getElementById('status-text').innerText = data.phase;
-    document.getElementById('timer-text').innerText = data.timer;
-    if(data.result) {
-        document.getElementById('classic-result').innerHTML = data.result.result.map(c => 
-            `<span style="color:${c.toLowerCase()}">■</span>`
-        ).join(' ');
-    }
+    document.getElementById('mini-bal').innerText = amt;
 });
 
 socket.on('duel_event', (data) => {
-    alert(data.msg); // Use toast in real app
+    const display = document.getElementById('match-display');
+    display.innerHTML = `<div class="text-gold blink" style="font-family:'Press Start 2P'; text-align:center">${data.msg}</div>`;
 });
 
-socket.on('error', (msg) => alert(msg));
-
-// --- UI LOGIC ---
 function updateState(state) {
-    // Players List
+    // 1. Players List
     const list = document.getElementById('player-list');
-    list.innerHTML = state.players.map(p => `<div>${p.username} <small>(${p.status})</small></div>`).join('');
-    document.getElementById('player-count').innerText = state.onlineCount;
+    list.innerHTML = state.players.map(p => {
+        const badgeClass = p.role === 'admin' ? 'badge-admin' : 'badge-user';
+        return `<div class="p-row"><span class="p-badge ${badgeClass}"></span> ${p.username}</div>`
+    }).join('');
+    document.getElementById('online-count').innerText = state.onlineCount;
 
-    // Classic Logic (Sync timer if just joined)
-    if(currentMode === 'classic') {
-        document.getElementById('timer-text').innerText = state.classic.timer;
-        document.getElementById('status-text').innerText = state.classic.phase;
-    }
+    // 2. Duel Seats
+    renderSeat('left', state.duel.seats.left);
+    renderSeat('right', state.duel.seats.right);
 
-    // Duel Logic
-    renderDuelSeats(state.duel);
-}
-
-function switchMode(mode) {
-    currentMode = mode;
-    document.getElementById('view-classic').classList.toggle('hidden', mode !== 'classic');
-    document.getElementById('view-duel').classList.toggle('hidden', mode !== 'duel');
-}
-
-// --- CLASSIC ---
-function placeBet(color) {
-    const amount = document.getElementById('bet-amount').value;
-    if(!amount) return alert('Enter amount');
-    socket.emit('place_bet_classic', { selection: color, amount });
-}
-
-// --- DUEL ---
-function renderDuelSeats(duelState) {
-    const left = duelState.seats.left;
-    const right = duelState.seats.right;
-    
-    updateSeat('left', left);
-    updateSeat('right', right);
-
+    // 3. Match Logic / Controls
     const controls = document.getElementById('duel-controls');
-    controls.innerHTML = '';
+    const alertBox = document.getElementById('proposal-alert');
+    const status = document.getElementById('match-status');
+    const display = document.getElementById('match-display');
+
+    // Reset visibility defaults
+    controls.classList.add('hidden');
+    alertBox.classList.add('hidden');
     
-    // Proposal Logic
-    if (duelState.proposal && duelState.proposal.to === currentUser.username) {
-        controls.classList.remove('hidden');
-        controls.innerHTML = `
-            <h3>Challenge from ${duelState.proposal.from}</h3>
-            <p>Game: ${duelState.proposal.game} | Bet: ${duelState.proposal.bet}</p>
-            <button onclick="socket.emit('duel_respond', 'ACCEPT')">ACCEPT</button>
-            <button onclick="socket.emit('duel_respond', 'DECLINE')">DECLINE</button>
-        `;
-    } else if (left?.username === currentUser.username || right?.username === currentUser.username) {
-        if (!duelState.proposal && !duelState.match) {
-            controls.classList.remove('hidden');
-            controls.innerHTML = `
-                <button onclick="socket.emit('duel_leave')">LEAVE SEAT</button>
-                <button onclick="proposeDuel()">PROPOSE MATCH</button>
-            `;
-        } else {
-            controls.classList.add('hidden');
+    // Am I seated?
+    const mySeat = (state.duel.seats.left?.username === currentUser.username) ? 'left' 
+                 : (state.duel.seats.right?.username === currentUser.username) ? 'right' : null;
+
+    if (state.duel.match) {
+        status.innerText = "MATCH IN PROGRESS";
+        status.classList.add('text-red');
+        status.classList.add('blink');
+        // If match is running, basic display (detailed anims would go here)
+        if(!display.innerHTML.includes('text-gold')) { 
+            display.innerHTML = `<div class="text-red" style="font-size:3rem">${state.duel.match.game}</div>`;
         }
     } else {
-        controls.classList.add('hidden');
-    }
-
-    if(duelState.match) {
-        document.getElementById('duel-info').innerHTML = `MATCH LIVE!<br>Pot: ${duelState.match.pot}`;
+        status.innerText = "WAITING FOR PLAYERS...";
+        status.classList.remove('text-red', 'blink');
+        
+        // Show controls if I am seated and no match is active
+        if (mySeat) {
+            controls.classList.remove('hidden');
+            // If I have a proposal pending towards me
+            if (state.duel.proposal && state.duel.proposal.to === currentUser.username) {
+                alertBox.classList.remove('hidden');
+                document.getElementById('proposal-details').innerText = 
+                    `${state.duel.proposal.from} wants to play ${state.duel.proposal.game} for ${state.duel.proposal.bet} TC`;
+            }
+        }
     }
 }
 
-function updateSeat(side, data) {
-    const el = document.getElementById(`seat-${side}`);
-    if(data) {
-        el.classList.add('occupied');
-        el.querySelector('.seat-name').innerText = data.username;
-        el.querySelector('button').style.display = 'none';
+function renderSeat(side, data) {
+    const pod = document.getElementById(`pod-${side}`);
+    const nameEl = document.getElementById(`p${side === 'left' ? '1' : '2'}-name`);
+    const btn = document.getElementById(`btn-sit-${side}`);
+    const avatar = document.getElementById(`p${side === 'left' ? '1' : '2'}-avatar`);
+
+    if (data) {
+        // Occupied
+        pod.style.borderColor = 'var(--neon-blue)';
+        nameEl.innerText = data.username;
+        btn.classList.add('hidden');
+        avatar.style.backgroundColor = 'var(--neon-blue)';
     } else {
-        el.classList.remove('occupied');
-        el.querySelector('.seat-name').innerText = 'Empty';
-        el.querySelector('button').style.display = 'block';
+        // Empty
+        pod.style.borderColor = '#333';
+        nameEl.innerText = "EMPTY";
+        btn.classList.remove('hidden');
+        avatar.style.backgroundColor = '#111';
     }
+}
+
+// --- ACTIONS ---
+function switchGame(game) {
+    currentGame = game;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
 }
 
 function sitDuel(side) { socket.emit('duel_sit', side); }
 
 function proposeDuel() {
-    const bet = prompt("Bet Amount:");
-    if(bet) socket.emit('duel_propose', { game: '3DICE', bet });
-}
-
-// --- CHAT ---
-function renderChat(history) {
-    const box = document.getElementById('chat-box');
-    box.innerHTML = '';
-    history.forEach(appendChat);
-}
-
-function appendChat(msg) {
-    const box = document.getElementById('chat-box');
-    const div = document.createElement('div');
-    div.className = 'chat-msg';
-    div.innerHTML = `<span class="chat-time">[${msg.time.split(',')[1].trim()}]</span> <span class="chat-user">${msg.username}:</span> ${msg.text}`;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
+    const bet = document.getElementById('proposal-bet').value;
+    const rounds = document.getElementById('round-setting').value;
+    if(!bet || bet <= 0) return alert("INVALID BET");
+    socket.emit('duel_propose', { game: currentGame, bet, rounds });
 }
 
 function sendChat() {
     const inp = document.getElementById('chat-input');
-    socket.emit('chat_msg', inp.value);
-    inp.value = '';
+    if(inp.value.trim()) {
+        socket.emit('chat_msg', inp.value);
+        inp.value = '';
+    }
+}
+
+function renderChat(history) {
+    const box = document.getElementById('chat-box');
+    box.innerHTML = '';
+    history.forEach(msg => {
+        const d = document.createElement('div');
+        d.className = 'chat-msg';
+        d.innerHTML = `<span class="chat-user">${msg.username}:</span> ${msg.text}`;
+        box.appendChild(d);
+    });
+    box.scrollTop = box.scrollHeight;
+}
+
+socket.on('chat_new', (msg) => {
+    const box = document.getElementById('chat-box');
+    const d = document.createElement('div');
+    d.className = 'chat-msg';
+    d.innerHTML = `<span class="chat-user">${msg.username}:</span> ${msg.text}`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+});
+
+// --- UI HELPERS ---
+function toggleModal(id) {
+    const m = document.getElementById(id);
+    m.classList.toggle('hidden');
 }
 
 function refreshState() {
-    socket.emit('request_snapshot'); // Would need backend handler, or just reconnect
-    socket.disconnect();
-    socket.connect();
+    location.reload(); 
 }
 
-function openTicketModal(type) {
-    const amt = prompt("Amount:");
-    if(amt) socket.emit('create_ticket', { type, amount: amt, msg: 'Request via UI' });
-}
-
-// --- VOICE (Placeholder Logic) ---
-function toggleVoice() {
-    alert("Voice Chat connects via WebRTC. (Implemented in backend signaling)");
-}
-
-// Check for token on load
+// Check auth on load
 if(localStorage.getItem('token')) {
     document.getElementById('auth-overlay').classList.add('hidden');
+    document.getElementById('app-container').classList.remove('hidden');
     connectSocket(localStorage.getItem('token'));
 }
