@@ -2,65 +2,60 @@
 <html>
 <head>
     <title>Stick N' Duel</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="auth-modal">
-        <div class="pixel-box center">
-            <h1 class="neon">STICK N' DUEL</h1>
-            <p id="auth-err" style="color:red"></p>
-            <input id="u" placeholder="Username (5-12 chars)" maxlength="12">
-            <input id="p" type="password" placeholder="Password" maxlength="12">
-            <button onclick="auth('login')">LOGIN</button>
-            <button onclick="auth('register')" class="blue">REGISTER</button>
+        <div class="modal-box">
+            <h1 style="color:#ffd700; font-size:50px; margin:0;">STICK N' DUEL</h1>
+            <p id="err" style="color:red"></p>
+            <input id="u" placeholder="Username (3-12 chars)" style="width:100%; margin:10px 0;">
+            <input id="p" type="password" placeholder="Password" style="width:100%; margin-bottom:20px;">
+            <button onclick="auth('login')" class="blue" style="width:100%">LOGIN</button>
+            <button onclick="auth('register')" style="width:100%; margin-top:10px;">CREATE ACCOUNT</button>
         </div>
     </div>
 
     <div class="wrapper">
         <div class="col side">
-            <div class="pixel-box full-h">
-                <h3>PLAYERS ONLINE</h3>
-                <div id="plist"></div>
-                <div style="margin-top:auto">
-                    <a href="/admin.html" target="_blank" style="color:#555; text-decoration:none;">ADMIN PANEL</a>
-                </div>
+            <h2 style="text-align:center; border-bottom:2px solid #555; padding-bottom:5px;">PLAYERS ONLINE</h2>
+            <div id="plist" class="player-list"></div>
+            
+            <div class="chat-box">
+                <div id="chat-hist" class="chat-hist"></div>
+                <input id="chat-in" class="chat-input" placeholder="Press Enter to chat...">
             </div>
+            
+            <button onclick="window.open('/admin.html')" style="margin-top:5px;">ADMIN PANEL</button>
+            <button onclick="logout()" class="red" style="margin-top:5px;">LOGOUT</button>
         </div>
 
         <div class="col main">
-            <div class="pixel-box game-panel">
-                <div class="top-info">
-                    <span id="sc-l" class="blue-t">0</span>
-                    <span id="pot" class="yellow-t">POT: 0</span>
-                    <span id="sc-r" class="red-t">0</span>
+            <div class="game-panel">
+                <div class="top-bar">
+                    <span id="sc-l" style="color:#0088ff">0</span>
+                    <span id="pot" style="color:#ffd700">POT: 0</span>
+                    <span id="sc-r" style="color:#ff4444">0</span>
                 </div>
 
-                <div class="arena">
+                <div class="seats">
                     <div id="seat-l" class="seat"></div>
                     
-                    <div class="center-stage">
-                        <div id="vis-text" style="font-size:50px; text-shadow:2px 2px 0 #000;">VS</div>
-                        <button id="act-btn" onclick="act()" style="display:none; font-size:30px; background:#ff00ff;">ACTION!</button>
+                    <div style="text-align:center; width:200px;">
+                        <div id="vis" style="font-size:60px; text-shadow:3px 3px 0 #000;">VS</div>
+                        <button id="act-btn" onclick="act()" style="display:none; font-size:30px; padding:10px 20px; background:#ff00ff; border:4px solid #fff; animation:pulse 0.5s infinite;">ACTION!</button>
                     </div>
-                    
+
                     <div id="seat-r" class="seat"></div>
                 </div>
 
-                <div id="spec-bet" style="display:none; justify-content:center; gap:10px; margin-top:10px;">
+                <div id="spec-ui" style="display:none; margin-top:20px; gap:10px; background:#000; padding:10px; border:2px solid #fff;">
                     <span>BET ON WINNER:</span>
-                    <input id="s-amt" type="number" placeholder="$" style="width:60px">
+                    <input id="s-amt" type="number" placeholder="$$$" style="width:80px;">
                     <button onclick="spec('l')" class="blue">LEFT</button>
                     <button onclick="spec('r')" class="red">RIGHT</button>
                 </div>
-            </div>
-        </div>
-
-        <div class="col side">
-            <div class="pixel-box full-h chat-box">
-                <div id="chat-hist"></div>
-                <input id="chat-in" placeholder="Chat here...">
             </div>
         </div>
     </div>
