@@ -1,0 +1,60 @@
+:root {
+    --bg-dark: #121212;
+    --bg-panel: #1e1e24;
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00ff;
+    --text-main: #e0e0e0;
+    --border: 1px solid #333;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* LAYOUT */
+#app-container { display: flex; flex: 1; height: 100%; overflow: hidden; }
+.panel { background: var(--bg-panel); border-right: var(--border); display: flex; flex-direction: column; }
+.panel-header { padding: 10px; background: #000; font-weight: bold; border-bottom: var(--border); text-transform: uppercase; letter-spacing: 1px; }
+.panel-content { flex: 1; overflow-y: auto; padding: 10px; }
+
+/* SIDEBARS */
+#left-sidebar { width: 250px; min-width: 250px; }
+#right-sidebar { width: 300px; min-width: 300px; border-left: var(--border); border-right: none; }
+
+/* MAIN CENTER */
+#main-stage { flex: 1; display: flex; flex-direction: column; background: #0d0d0d; position: relative; }
+
+/* HUD */
+#hud { height: 50px; background: #000; border-bottom: var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-family: monospace; font-size: 1.2rem; }
+.stat-box { display: flex; gap: 10px; }
+.credit-display { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); }
+
+/* AUTH OVERLAY */
+#auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.auth-box { background: var(--bg-panel); padding: 40px; border: 2px solid var(--neon-pink); border-radius: 10px; text-align: center; width: 300px; }
+input { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; }
+button { width: 100%; padding: 10px; background: var(--neon-blue); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+button:hover { opacity: 0.8; }
+
+/* CHAT */
+.chat-msg { margin-bottom: 5px; font-size: 0.9rem; }
+.chat-time { color: #666; font-size: 0.7rem; margin-right: 5px; }
+.chat-user { color: var(--neon-pink); font-weight: bold; }
+
+/* CLASSIC GAME */
+.game-controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+.bet-btn { padding: 15px 30px; border: 2px solid var(--neon-blue); background: transparent; color: #fff; cursor: pointer; }
+.bet-btn.selected { background: var(--neon-blue); color: #000; }
+.dice-display { display: flex; gap: 20px; justify-content: center; font-size: 2rem; margin: 20px 0; min-height: 60px; }
+
+/* DUEL ARENA */
+.duel-layout { display: flex; justify-content: space-between; padding: 50px; align-items: center; height: 100%; }
+.seat { width: 200px; height: 300px; border: 2px dashed #444; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+.seat.occupied { border: 2px solid var(--neon-pink); background: #1a1a1a; }
+.seat-avatar { font-size: 3rem; margin-bottom: 10px; }
+.vs-center { text-align: center; }
+.proposal-box { background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid var(--neon-blue); margin-top: 20px; }
+
+/* UTILS */
+.hidden { display: none !important; }
+.text-green { color: #0f0; }
+.text-red { color: #f00; }

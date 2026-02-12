@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SNT ADMIN</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>body { background: #000; border: 5px solid red; }</style>
+</head>
+<body>
+    <div style="padding:20px;">
+        <h1 style="color:red">ADMIN DASHBOARD</h1>
+        <button onclick="location.reload()">REFRESH DATA</button>
+        <hr>
+        <div style="display:flex; gap:20px;">
+            <div style="flex:1">
+                <h3>Users</h3>
+                <div id="user-list">Fetching...</div>
+            </div>
+            <div style="flex:1">
+                <h3>Pending Tickets</h3>
+                <div id="ticket-list">Fetching...</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // In a real app, this would use a separate secured socket or REST API with the Admin Token
+        document.getElementById('user-list').innerText = "Connect to DB via Compass to manage users for this v1.";
+        document.getElementById('ticket-list').innerText = "Check MongoDB 'tickets' collection.";
+    </script>
+</body>
+</html>
