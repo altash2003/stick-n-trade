@@ -1,51 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Panel</title>
+    <title>Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="pixel-box" style="width:800px; margin:50px auto;">
-        <h1 class="neon">HOUSE ADMIN PANEL</h1>
-        <button onclick="loadUsers()">REFRESH LIST</button>
-        <table style="width:100%; margin-top:20px; border-collapse:collapse;">
-            <thead>
-                <tr style="border-bottom:2px solid #fff; color:#0f0;">
-                    <th>USER</th><th>BALANCE</th><th>ROLE</th><th>STATUS</th><th>ACTIONS</th>
-                </tr>
-            </thead>
-            <tbody id="users"></tbody>
-        </table>
+    <div class="pixel-box" style="width:800px; margin:50px auto; max-width:95%;">
+        <h1 class="neon">ADMIN PANEL</h1>
+        <button onclick="load()">REFRESH</button>
+        <a href="/" style="color:#fff; margin-left:20px;">BACK TO GAME</a>
+        <div id="list" style="margin-top:20px;"></div>
     </div>
-
     <script>
-        async function loadUsers() {
+        async function load() {
             const res = await fetch('/api/admin/users');
-            if(res.status === 401 || res.status === 403) return alert("ACCESS DENIED");
-            const users = await res.json();
-            document.getElementById('users').innerHTML = users.map(u => `
-                <tr style="border-bottom:1px solid #333;">
-                    <td>${u.username}</td>
-                    <td style="color:#ffd700">$${u.balance}</td>
-                    <td>${u.role}</td>
-                    <td style="color:${u.banned?'red':'green'}">${u.banned?'BANNED':'ACTIVE'}</td>
-                    <td>
-                        <button onclick="mod('${u._id}', 'balance', 500)">+500</button>
-                        <button onclick="mod('${u._id}', 'balance', -500)">-500</button>
-                        <button onclick="mod('${u._id}', 'ban', ${!u.banned})" class="red">${u.banned?'UNBAN':'BAN'}</button>
-                    </td>
-                </tr>
+            if(res.status!=200) { alert('Access Denied'); window.location.href='/'; return; }
+            const data = await res.json();
+            document.getElementById('list').innerHTML = data.map(u => `
+                <div style="border-bottom:1px solid #555; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:20px; color:${u.color}">${u.username}</span> 
+                        <span style="color:#888">(${u.role})</span>
+                    </div>
+                    <div class="neon">$${u.balance}</div>
+                    <div>
+                        <button onclick="act('${u._id}','balance',1000)" class="blue" style="width:auto">+1k</button>
+                        <button onclick="act('${u._id}','balance',-1000)" class="red" style="width:auto">-1k</button>
+                        <button onclick="act('${u._id}','ban',${!u.banned})" style="width:auto">${u.banned?'UNBAN':'BAN'}</button>
+                    </div>
+                </div>
             `).join('');
         }
-        async function mod(userId, type, val) {
-            await fetch('/api/admin/action', {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ userId, type, amount: val, status: val })
-            });
-            loadUsers();
+        async function act(userId, type, val) {
+            await fetch('/api/admin/action', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId, type, amount:val, status:val}) });
+            load();
         }
-        loadUsers();
+        load();
     </script>
 </body>
 </html>
