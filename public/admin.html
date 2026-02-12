@@ -1,279 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>SNT ADMIN PANEL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        body { background: #050505; padding: 20px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* ADMIN LAYOUT GRID */
-        .admin-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 Columns */
-            grid-template-rows: 50% 45%; /* Top Half, Bottom Half */
-            gap: 20px;
-            flex: 1;
-            margin-top: 20px;
-        }
-
-        /* HEADER */
-        .admin-header { display: flex; gap: 10px; align-items: center; }
-        .admin-title { font-family: 'Press Start 2P'; color: var(--neon-gold); font-size: 20px; margin-right: 20px; }
-
-        /* PANELS */
-        .admin-panel {
-            border: 2px solid #333;
-            background: #111;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .panel-title { 
-            font-family: 'Press Start 2P'; color: #fff; font-size: 14px; margin-bottom: 10px; 
-            border-bottom: 2px solid #333; padding-bottom: 5px;
-        }
-
-        /* FORM ELEMENTS */
-        .admin-input {
-            background: #000; border: 1px solid #444; color: #fff; padding: 10px;
-            font-family: 'VT323'; font-size: 1.2rem; width: 100%; margin-bottom: 10px;
-        }
-        .row-inputs { display: flex; gap: 10px; }
-        
-        .btn-action {
-            width: 100%; padding: 10px; font-family: 'Press Start 2P'; font-size: 10px;
-            cursor: pointer; border: none;
-        }
-        .btn-green-solid { background: var(--neon-green); color: #000; }
-        .btn-grey { background: #333; color: #fff; }
-
-        /* PLAYER LIST */
-        .player-row {
-            background: #1a1a1a; padding: 8px; margin-bottom: 5px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #333; cursor: pointer;
-        }
-        .player-row:hover { border-color: var(--neon-gold); }
-        .player-row.selected { background: #333; border-color: var(--neon-green); }
-
-        /* TICKET SYSTEM */
-        .ticket-row {
-            display: flex; justify-content: space-between; padding: 10px;
-            background: #000; border: 1px solid #333; margin-bottom: 5px; cursor: pointer;
-        }
-        .ticket-row:hover { border-color: #fff; }
-        .ticket-status { padding: 2px 5px; font-size: 10px; border-radius: 4px; }
-        .status-open { background: #333; color: #fff; border: 1px solid #fff; }
-        .status-closed { background: #220000; color: #f00; border: 1px solid #f00; }
-
-        .ticket-thread-box {
-            flex: 1; background: #000; border: 1px solid #333; padding: 10px;
-            overflow-y: auto; font-family: 'VT323'; color: #aaa; margin-bottom: 10px;
-        }
-        .thread-msg { margin-bottom: 10px; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-        .msg-admin { color: var(--neon-green); }
-        .msg-user { color: var(--neon-gold); }
-
-        /* SCROLLBARS */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #333; }
-    </style>
+    <title>Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div class="admin-header">
-        <div class="admin-title">ADMIN PANEL</div>
-        <button class="btn-grey" onclick="refreshData()">REFRESH</button>
-        <button class="btn-grey" onclick="window.location.href='/'">BACK TO GAME</button>
-    </div>
-
-    <div class="admin-container">
-        
-        <div class="admin-panel">
-            <div class="panel-title">PLAYERS</div>
-            
-            <div style="border: 1px solid var(--neon-green); padding: 10px; margin-bottom: 15px;">
-                <div style="color:var(--neon-gold); font-family:'Press Start 2P'; font-size:10px; margin-bottom:10px;">DIRECT TOPUP</div>
-                <div class="row-inputs">
-                    <select id="topup-user" class="admin-input" style="flex:2">
-                        <option value="">Select User</option>
-                    </select>
-                    <input type="number" id="topup-amount" class="admin-input" placeholder="AMOUNT" style="flex:1">
-                </div>
-                <input type="text" id="topup-note" class="admin-input" placeholder="NOTE (optional)">
-                <button class="btn-action btn-green-solid" onclick="doTopup()">TOPUP NOW</button>
-            </div>
-
-            <div style="font-family:'Press Start 2P'; font-size:10px; margin-bottom:5px;">PLAYER LIST</div>
-            <div id="player-list-box" style="overflow-y:auto; flex:1;">
-                </div>
-        </div>
-
-        <div class="admin-panel">
-            <div class="panel-title">TOPUP / WITHDRAW REQUESTS</div>
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <button class="btn-grey" style="padding:5px 10px; border:1px solid #fff;">ACTIVE</button>
-                <button class="btn-grey" style="padding:5px 10px; opacity:0.5">ARCHIVED</button>
-            </div>
-            <div style="color:#666; font-family:'VT323';">No transactions pending.</div>
-        </div>
-
-        <div class="admin-panel" style="grid-column: span 2;">
-            <div class="panel-title">SUPPORT TICKETS</div>
-            
-            <div style="display:flex; gap:20px; height:100%;">
-                <div style="flex: 1; display:flex; flex-direction:column; border-right:1px solid #333; padding-right:10px;">
-                    <div style="display:flex; gap:5px; margin-bottom:10px;">
-                        <button class="btn-grey" style="border:1px solid #fff;">ACTIVE</button>
-                        <button class="btn-grey" style="opacity:0.5">ARCHIVED</button>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; color:var(--neon-gold); font-size:10px; font-family:'Press Start 2P'; padding:5px;">
-                        <span>SUBJECT</span> <span>STATUS</span>
-                    </div>
-                    <div id="ticket-list-box" style="overflow-y:auto; flex:1;">
-                        </div>
-                </div>
-
-                <div style="flex: 2; display:flex; flex-direction:column;">
-                    <div style="color:var(--neon-gold); font-family:'Press Start 2P'; font-size:10px; margin-bottom:5px;">TICKET THREAD</div>
-                    <div id="thread-view" class="ticket-thread-box">
-                        Select a ticket to view messages.
-                    </div>
-                    <textarea id="reply-input" class="admin-input" placeholder="Type admin reply..." style="height:60px;"></textarea>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn-action btn-green-solid" style="width:auto;" onclick="sendReply()">SEND REPLY</button>
-                        <button class="btn-action btn-grey" style="width:auto;" onclick="closeTicket()">CLOSE TICKET</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="pixel-box" style="width:800px; margin:50px auto;">
+        <h1 class="neon">HOUSE ADMIN PANEL</h1>
+        <button onclick="loadUsers()">REFRESH LIST</button>
+        <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:2px solid #fff; color:#0f0;">
+                    <th>USER</th><th>BALANCE</th><th>ROLE</th><th>STATUS</th><th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="users"></tbody>
+        </table>
     </div>
 
     <script>
-        let currentTicketId = null;
-        let allTickets = [];
-
-        async function refreshData() {
-            const token = localStorage.getItem('token');
-            if(!token) return alert("LOGIN AS ADMIN FIRST");
-
-            try {
-                const res = await fetch('/api/admin/data', { headers: { 'Authorization': token } });
-                if(res.status === 403) return alert("NOT AUTHORIZED");
-                
-                const data = await res.json();
-                renderUsers(data.users);
-                renderTickets(data.tickets);
-            } catch(e) { console.error(e); }
+        async function loadUsers() {
+            const res = await fetch('/api/admin/users');
+            if(res.status === 401 || res.status === 403) return alert("ACCESS DENIED");
+            const users = await res.json();
+            document.getElementById('users').innerHTML = users.map(u => `
+                <tr style="border-bottom:1px solid #333;">
+                    <td>${u.username}</td>
+                    <td style="color:#ffd700">$${u.balance}</td>
+                    <td>${u.role}</td>
+                    <td style="color:${u.banned?'red':'green'}">${u.banned?'BANNED':'ACTIVE'}</td>
+                    <td>
+                        <button onclick="mod('${u._id}', 'balance', 500)">+500</button>
+                        <button onclick="mod('${u._id}', 'balance', -500)">-500</button>
+                        <button onclick="mod('${u._id}', 'ban', ${!u.banned})" class="red">${u.banned?'UNBAN':'BAN'}</button>
+                    </td>
+                </tr>
+            `).join('');
         }
-
-        function renderUsers(users) {
-            const listBox = document.getElementById('player-list-box');
-            const select = document.getElementById('topup-user');
-            
-            listBox.innerHTML = '';
-            select.innerHTML = '<option value="">Select User</option>'; // Reset dropdown
-
-            users.forEach(u => {
-                // Populate List
-                const div = document.createElement('div');
-                div.className = 'player-row';
-                div.innerHTML = `<span style="color:#fff">${u.username}</span> <span style="color:var(--neon-green)">${u.credits} TC</span>`;
-                listBox.appendChild(div);
-
-                // Populate Dropdown
-                const opt = document.createElement('option');
-                opt.value = u.username;
-                opt.innerText = u.username;
-                select.appendChild(opt);
+        async function mod(userId, type, val) {
+            await fetch('/api/admin/action', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ userId, type, amount: val, status: val })
             });
+            loadUsers();
         }
-
-        function renderTickets(tickets) {
-            allTickets = tickets;
-            const listBox = document.getElementById('ticket-list-box');
-            listBox.innerHTML = '';
-
-            tickets.forEach(t => {
-                const div = document.createElement('div');
-                div.className = 'ticket-row';
-                div.onclick = () => loadThread(t._id);
-                div.innerHTML = `
-                    <span>${t.username}: ${t.type}</span>
-                    <span class="ticket-status status-${t.status}">${t.status.toUpperCase()}</span>
-                `;
-                listBox.appendChild(div);
-            });
-        }
-
-        function loadThread(id) {
-            currentTicketId = id;
-            const ticket = allTickets.find(t => t._id === id);
-            const box = document.getElementById('thread-view');
-            
-            box.innerHTML = `
-                <div class="thread-msg">
-                    <div class="msg-user">USER: ${ticket.username}</div>
-                    <div>${ticket.message}</div>
-                </div>
-            `;
-
-            if(ticket.adminReply) {
-                box.innerHTML += `
-                    <div class="thread-msg">
-                        <div class="msg-admin">ADMIN:</div>
-                        <div>${ticket.adminReply}</div>
-                    </div>
-                `;
-            }
-        }
-
-        async function doTopup() {
-            const username = document.getElementById('topup-user').value;
-            const amount = document.getElementById('topup-amount').value;
-            const note = document.getElementById('topup-note').value;
-            
-            if(!username || !amount) return alert("Select user and amount");
-
-            await fetch('/api/admin/topup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token') },
-                body: JSON.stringify({ username, amount: parseInt(amount), note })
-            });
-            alert('TOPUP SUCCESS');
-            refreshData();
-        }
-
-        async function sendReply() {
-            if(!currentTicketId) return;
-            const reply = document.getElementById('reply-input').value;
-            
-            await fetch('/api/admin/ticket/reply', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token') },
-                body: JSON.stringify({ id: currentTicketId, reply })
-            });
-            document.getElementById('reply-input').value = '';
-            refreshData();
-        }
-
-        async function closeTicket() {
-            if(!currentTicketId) return;
-            await fetch('/api/admin/ticket/close', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token') },
-                body: JSON.stringify({ id: currentTicketId })
-            });
-            refreshData();
-        }
-
-        // Init
-        refreshData();
+        loadUsers();
     </script>
 </body>
 </html>
