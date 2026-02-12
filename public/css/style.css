@@ -1,6 +1,6 @@
 /* =========================================
    STICK N' TRADE - MASTER STYLESHEET
-   Theme: Retro Arcade / Cyberpunk Terminal
+   Theme: Retro Arcade / Cyberpunk Command Center
    ========================================= */
 
 :root {
@@ -13,6 +13,7 @@
     --neon-blue: #00ccff;
     --neon-red: #ff3333;
     --neon-green: #00ff66;
+    --btn-grey: #222;
     
     --text-main: #e0e0e0;
     --font-retro: 'Press Start 2P', cursive;
@@ -27,19 +28,19 @@ body {
     font-family: var(--font-term);
     font-size: 18px;
     height: 100vh;
-    overflow: hidden; /* Prevent body scroll, use internal scrolling */
+    overflow: hidden; /* No body scroll */
     display: flex;
     flex-direction: column;
 }
 
-/* --- SCANLINE OVERLAY --- */
+/* --- CRT SCANLINE OVERLAY --- */
 .scanlines {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
     background-size: 100% 4px;
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.6;
+    opacity: 0.4;
 }
 
 /* --- UTILITIES --- */
@@ -63,7 +64,7 @@ button {
     text-transform: uppercase;
     transition: all 0.1s;
 }
-button:hover { filter: brightness(1.3); transform: translateY(-1px); }
+button:hover { filter: brightness(1.2); transform: translateY(-1px); }
 button:active { transform: translateY(1px); }
 
 .btn-blue { background: #002244; border-color: var(--neon-blue); }
@@ -72,22 +73,30 @@ button:active { transform: translateY(1px); }
 .btn-gold { background: #443300; border-color: var(--neon-gold); }
 .btn-grey { background: #222; border-color: #555; color: #ccc; }
 
-.btn-green-solid { background: var(--neon-green); color: #000; border: 2px solid #fff; font-weight: bold; }
+/* Solid Green Button for Admin Actions (Topup/Reply) */
+.btn-green-solid { 
+    background: var(--neon-green); 
+    color: #000; 
+    border: 1px solid #fff; 
+    font-weight: bold; 
+    box-shadow: 0 0 5px var(--neon-green);
+}
 .btn-action { width: 100%; margin-top: 5px; }
 
 input, select, textarea {
     background: #000;
     border: 1px solid #444;
-    color: var(--neon-green);
+    color: #fff;
     font-family: var(--font-term);
     font-size: 1.2rem;
     padding: 8px;
 }
+input:focus, select:focus, textarea:focus { border-color: var(--neon-green); }
 textarea { resize: none; }
 select { cursor: pointer; }
 
 /* =========================================
-   PLAYER UI (index.html)
+   PLAYER GAME UI (index.html)
    ========================================= */
 
 #app-container {
@@ -106,10 +115,10 @@ select { cursor: pointer; }
 .tab { flex: 1; background: #1a1a1a; border: 1px solid #333; color: #666; }
 .tab.active { background: var(--neon-gold); color: #000; border-color: #fff; }
 
-/* MAIN GRID AREA */
+/* MAIN GRID */
 .main-grid { display: flex; flex: 1; gap: 10px; overflow: hidden; }
 
-/* LEFT: ARENA */
+/* ARENA SECTION (Left) */
 .arena-section {
     flex: 3; display: flex; gap: 5px;
     background: #000; border: 2px solid var(--border-color);
@@ -132,7 +141,7 @@ select { cursor: pointer; }
 #match-display { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .waiting-text { font-size: 2rem; color: #444; font-family: var(--font-retro); }
 
-/* RIGHT: SIDEBAR */
+/* SIDEBAR SECTION (Right) */
 .sidebar-section { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
 .panel { background: var(--bg-panel); border: 2px solid var(--border-color); display: flex; flex-direction: column; }
 .panel-header { background: #000; border-bottom: 2px solid #333; padding: 8px; font-family: var(--font-retro); font-size: 10px; color: #888; }
@@ -148,29 +157,34 @@ select { cursor: pointer; }
 .chat-msg { margin-bottom: 4px; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px; }
 .chat-user { color: var(--neon-gold); font-weight: bold; }
 
+
 /* =========================================
-   ADMIN PANEL (admin.html)
+   ADMIN PANEL STYLES (admin.html)
+   Based on Screenshot Layout
    ========================================= */
 
+/* Admin Header Area */
 .admin-header {
     display: flex; gap: 10px; align-items: center; 
-    padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 10px;
+    padding-bottom: 15px; border-bottom: 2px solid #333; margin-bottom: 15px;
 }
 .admin-title {
-    font-family: var(--font-retro); color: var(--neon-gold); font-size: 20px; margin-right: auto;
+    font-family: var(--font-retro); color: var(--neon-gold); font-size: 24px; margin-right: auto;
 }
 
 /* THE ADMIN GRID LAYOUT */
+/* Matches the screenshot: Left col (Players), Right col (Requests), Bottom row (Support) */
 .admin-container {
     display: grid;
     grid-template-columns: 1fr 1fr; /* Two equal columns */
-    grid-template-rows: 55% 40%;    /* Top area bigger, bottom area smaller */
+    grid-template-rows: auto 1fr;   /* Auto height for top row, remaining for bottom */
     gap: 20px;
     flex: 1;
-    overflow: hidden; /* Prevent full page scroll */
+    overflow: hidden; 
+    padding-bottom: 10px;
 }
 
-/* Individual Admin Panels */
+/* Panel Box Styling */
 .admin-panel {
     border: 2px solid #333;
     background: #080808;
@@ -183,45 +197,58 @@ select { cursor: pointer; }
 }
 
 .panel-title {
-    font-family: var(--font-retro); color: #fff; font-size: 12px; margin-bottom: 15px;
-    border-bottom: 2px solid #333; padding-bottom: 5px; text-transform: uppercase;
+    font-family: var(--font-retro); color: #fff; font-size: 14px; margin-bottom: 15px;
+    border-bottom: 2px solid #333; padding-bottom: 8px; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
 }
 
-/* Form Styles inside Admin */
+/* "Click to view" small text */
+.small-hint { font-size: 10px; color: #666; font-family: var(--font-term); cursor: pointer; border: 1px solid #333; padding: 2px 5px; border-radius: 10px; }
+
+/* --- ADMIN FORMS --- */
 .admin-input {
     background: #000; border: 1px solid #444; color: #fff; 
-    padding: 10px; font-family: var(--font-term); font-size: 1.2rem; 
+    padding: 10px; font-family: var(--font-term); font-size: 1rem; 
     width: 100%; margin-bottom: 8px;
 }
-.admin-input:focus { border-color: var(--neon-green); }
-
 .row-inputs { display: flex; gap: 10px; margin-bottom: 5px; }
 
-/* Admin Lists (Player Rows) */
+/* Direct Topup Box Specifics */
+.topup-box { border: 1px solid #333; padding: 10px; margin-bottom: 15px; background: #0a0a0a; }
+.label-gold { color: var(--neon-gold); font-family: var(--font-retro); font-size: 10px; margin-bottom: 8px; }
+
+/* Player List Bars (Dark Grey Bars from Screenshot) */
 .player-row {
-    background: #111; padding: 10px; margin-bottom: 5px; 
+    background: #151515; 
+    padding: 10px; 
+    margin-bottom: 5px; 
     display: flex; justify-content: space-between; align-items: center; 
-    border: 1px solid #333; cursor: pointer; transition: 0.2s;
+    border: 1px solid #333; 
+    cursor: pointer; 
+    transition: 0.2s;
+    font-family: var(--font-term);
+    color: #ccc;
 }
-.player-row:hover { border-color: var(--neon-gold); background: #1a1a1a; }
-.player-row span { font-family: var(--font-term); }
+.player-row:hover { border-color: var(--neon-blue); background: #222; color: #fff; }
+.player-row.selected { border-color: var(--neon-green); background: #111; }
 
-/* Ticket Rows */
+/* Ticket Table Rows */
 .ticket-row {
-    display: flex; justify-content: space-between; padding: 10px; 
-    background: #000; border: 1px solid #333; margin-bottom: 5px; 
-    cursor: pointer; font-family: var(--font-term);
+    display: flex; justify-content: space-between; padding: 12px; 
+    background: #000; border-bottom: 1px solid #222; 
+    cursor: pointer; font-family: var(--font-term); font-size: 16px;
 }
-.ticket-row:hover { border-color: #fff; }
+.ticket-row:hover { background: #111; color: var(--neon-gold); }
 
+/* Status Badges */
 .ticket-status { 
-    padding: 4px 8px; font-size: 10px; border-radius: 0; 
-    font-family: var(--font-retro); 
+    padding: 4px 8px; font-size: 10px; border-radius: 4px; 
+    font-family: var(--font-retro); border: 1px solid #444;
 }
-.status-open { background: #111; color: var(--neon-green); border: 1px solid var(--neon-green); }
-.status-closed { background: #220000; color: #f00; border: 1px solid #f00; }
+.status-open { background: #222; color: #fff; }
+.status-closed { background: #300; color: #f55; }
 
-/* Ticket Thread View */
+/* Ticket Thread/Chat Area */
 .ticket-thread-box {
     flex: 1; background: #000; border: 1px solid #333; 
     padding: 15px; overflow-y: auto; font-family: var(--font-term); 
@@ -246,7 +273,7 @@ select { cursor: pointer; }
 }
 .title-gold { font-family: var(--font-retro); color: var(--neon-gold); text-align: center; margin-bottom: 20px; }
 
-/* --- SCROLLBARS (Webkit) --- */
+/* --- SCROLLBARS --- */
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; }
