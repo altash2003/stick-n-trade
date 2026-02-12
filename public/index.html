@@ -3,107 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STICK N' TRADE CASINO</title>
+    <title>STICK N' TRADE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
+    <div class="scanlines"></div>
+
     <div id="auth-overlay">
-        <div class="auth-box">
-            <h2 style="color:var(--neon-blue); margin-bottom:20px;">STICK N' TRADE</h2>
-            <div id="auth-msg" class="text-red"></div>
-            <input type="text" id="username" placeholder="Username (5-12 chars)">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Enter Casino</button>
-            <p style="margin-top:10px; font-size:0.8rem; cursor:pointer;" onclick="register()">Or Register</p>
+        <div class="pixel-box auth-container">
+            <h1 class="title-gold">STICK N' TRADE</h1>
+            <div id="auth-msg" class="text-red blink"></div>
+            
+            <div class="input-group">
+                <label>USERNAME</label>
+                <input type="text" id="username" maxlength="12">
+            </div>
+            <div class="input-group">
+                <label>PASSWORD</label>
+                <input type="password" id="password">
+            </div>
+
+            <button class="btn-blue full-width" onclick="login()">LOGIN</button>
+            <button class="btn-red full-width" style="margin-top:10px" onclick="register()">CREATE ACCOUNT</button>
         </div>
     </div>
 
-    <div id="hud">
-        <div class="stat-box">
-            <span>CREDITS:</span>
-            <span id="credit-bal" class="credit-display">0</span>
-        </div>
-        <div class="stat-box">
-            <span id="status-text">WAITING...</span>
-            <span id="timer-text" style="color:yellow">00</span>
-        </div>
-        <div class="stat-box">
-            <div id="conn-status">CONNECTING...</div>
-            <button onclick="refreshState()" style="padding:5px 10px; font-size:0.8rem; width:auto; margin-left:10px;">REFRESH</button>
-        </div>
-    </div>
-
-    <div id="app-container">
+    <div id="app-container" class="hidden">
         
-        <div class="panel" id="left-sidebar">
-            <div class="panel-header">Active Players (<span id="player-count">0</span>)</div>
-            <div class="panel-content" id="player-list"></div>
-            <div class="panel-header" style="border-top:var(--border)">Support</div>
-            <div class="panel-content" style="flex:0 0 150px;">
-                <button onclick="openTicketModal('topup')" style="margin-bottom:5px;">Request Topup</button>
-                <button onclick="openTicketModal('withdraw')">Withdraw</button>
+        <header id="top-hud">
+            <div class="logo-section">
+                <span class="text-gold">STICK N' TRADE</span>
+                <span class="text-grey"> | </span>
+                <span>YOU: <span id="my-username" class="text-blue">...</span></span>
             </div>
-        </div>
-
-        <div id="main-stage">
-            <div style="padding:10px; border-bottom:var(--border); display:flex; gap:10px;">
-                <button onclick="switchMode('classic')">Classic Casino</button>
-                <button onclick="switchMode('duel')">Duel Arena</button>
+            <div class="credits-section">
+                CREDITS: <span id="credit-bal" class="text-green">LOADING...</span> TC
             </div>
+            <div class="nav-buttons">
+                <button onclick="refreshState()">REFRESH</button>
+                <button class="btn-gold" onclick="toggleModal('support-modal')">SUPPORT</button>
+                <button onclick="logout()">LOGOUT</button>
+            </div>
+        </header>
 
-            <div id="view-classic" class="panel-content">
-                <h2 style="text-align:center; color:var(--neon-pink)">COLOR GAME</h2>
-                <div class="dice-display" id="classic-result">
-                    <span>?</span><span>?</span><span>?</span>
-                </div>
-                <div style="text-align:center" id="classic-history"></div>
+        <nav id="game-tabs">
+            <button class="tab active" onclick="switchGame('DICE')">DICE</button>
+            <button class="tab" onclick="switchGame('COIN')">COIN</button>
+            <button class="tab" onclick="switchGame('HILO')">HI-LO</button>
+            <button class="tab" onclick="switchGame('RPS')">R.P.S.</button>
+        </nav>
+
+        <div class="main-grid">
+            
+            <div class="arena-section">
                 
-                <div class="game-controls">
-                    <button class="bet-btn" onclick="placeBet('RED')">RED</button>
-                    <button class="bet-btn" onclick="placeBet('GREEN')">GREEN</button>
-                    <button class="bet-btn" onclick="placeBet('BLUE')">BLUE</button>
+                <div class="player-pod" id="pod-left">
+                    <div class="pod-header">PLAYER 1</div>
+                    <div class="pod-content">
+                        <div class="avatar-box" id="p1-avatar"></div>
+                        <div class="player-name" id="p1-name">EMPTY</div>
+                        <div class="match-score hidden" id="p1-score">0</div>
+                    </div>
+                    <button class="btn-seat" id="btn-sit-left" onclick="sitDuel('left')">TAKE SEAT 1</button>
                 </div>
-                <div style="text-align:center; margin-top:20px;">
-                    <input type="number" id="bet-amount" placeholder="Bet Amount" style="width:150px;">
+
+                <div class="match-center">
+                    <div class="status-bar" id="match-status">WAITING FOR PLAYERS...</div>
+                    
+                    <div id="match-display">
+                        <div class="waiting-text blink">WAITING</div>
+                    </div>
+
+                    <div id="duel-controls" class="hidden">
+                        <div class="control-panel">
+                            <label>MATCH SETTINGS</label>
+                            <select id="round-setting">
+                                <option value="1">1 Round (Sudden Death)</option>
+                                <option value="3">Best of 3</option>
+                                <option value="5">Best of 5</option>
+                            </select>
+                            <input type="number" id="proposal-bet" placeholder="BET AMOUNT">
+                            <button class="btn-green" onclick="proposeDuel()">PROPOSE MATCH</button>
+                            <button class="btn-red" onclick="socket.emit('duel_leave')">LEAVE SEAT</button>
+                        </div>
+                    </div>
+
+                    <div id="proposal-alert" class="hidden pixel-box">
+                        <div class="text-gold">CHALLENGE RECEIVED!</div>
+                        <div id="proposal-details"></div>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn-green" onclick="socket.emit('duel_respond', 'ACCEPT')">ACCEPT</button>
+                            <button class="btn-red" onclick="socket.emit('duel_respond', 'DECLINE')">DECLINE</button>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="player-pod" id="pod-right">
+                    <div class="pod-header">PLAYER 2</div>
+                    <div class="pod-content">
+                        <div class="avatar-box" id="p2-avatar"></div>
+                        <div class="player-name" id="p2-name">EMPTY</div>
+                        <div class="match-score hidden" id="p2-score">0</div>
+                    </div>
+                    <button class="btn-seat" id="btn-sit-right" onclick="sitDuel('right')">TAKE SEAT 2</button>
+                </div>
+
             </div>
 
-            <div id="view-duel" class="panel-content hidden">
-                <div class="duel-layout">
-                    <div class="seat" id="seat-left">
-                        <div class="seat-avatar">👤</div>
-                        <div class="seat-name">Empty</div>
-                        <button onclick="sitDuel('left')">SIT HERE</button>
-                    </div>
-
-                    <div class="vs-center">
-                        <h1 style="font-size:3rem; color:var(--neon-pink)">VS</h1>
-                        <div id="duel-info">Waiting for players...</div>
-                        <div id="duel-controls" class="hidden proposal-box">
+            <div class="sidebar-section">
+                
+                <div class="panel">
+                    <div class="panel-header">SPECTATOR BETTING</div>
+                    <div class="panel-body">
+                        <div class="bet-info">
+                            <span>WALLET: <span id="mini-bal" class="text-gold">0</span> TC</span>
+                        </div>
+                        <div class="bet-inputs">
+                            <input type="number" id="spec-amount" placeholder="AMOUNT">
+                            <div class="bet-buttons">
+                                <button class="btn-blue" onclick="placeSpecBet('left')">BET P1</button>
+                                <button class="btn-red" onclick="placeSpecBet('right')">BET P2</button>
                             </div>
-                    </div>
-
-                    <div class="seat" id="seat-right">
-                        <div class="seat-avatar">👤</div>
-                        <div class="seat-name">Empty</div>
-                        <button onclick="sitDuel('right')">SIT HERE</button>
+                        </div>
+                        <div id="active-spec-bet" class="text-green" style="margin-top:5px; font-size:0.8rem;"></div>
                     </div>
                 </div>
+
+                <div class="panel flex-grow">
+                    <div class="panel-header">PLAYERS ONLINE (<span id="online-count">0</span>)</div>
+                    <div class="panel-body scrollable" id="player-list">
+                        </div>
+                </div>
+
+                <div class="panel flex-grow" style="max-height: 300px;">
+                    <div class="panel-header">LIVE CHAT</div>
+                    <div class="panel-body scrollable" id="chat-box">
+                        </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Type here..." onkeypress="if(event.key==='Enter') sendChat()">
+                    </div>
+                </div>
+
             </div>
         </div>
+    </div>
 
-        <div class="panel" id="right-sidebar">
-            <div class="panel-header">Public Chat</div>
-            <div class="panel-content" id="chat-box"></div>
-            <div style="padding:10px; border-top:var(--border);">
-                <input type="text" id="chat-input" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendChat()">
+    <div id="support-modal" class="modal hidden">
+        <div class="pixel-box modal-box">
+            <h2 class="title-gold">SUPPORT</h2>
+            <div style="display:flex; gap:20px; height: 300px;">
+                <div style="flex:1;">
+                    <h3>OPEN NEW TICKET</h3>
+                    <select id="ticket-type" style="width:100%; margin-bottom:10px;">
+                        <option value="topup">Request Topup</option>
+                        <option value="withdraw">Request Withdraw</option>
+                        <option value="issue">Report Issue</option>
+                    </select>
+                    <textarea id="ticket-msg" placeholder="Describe your issue..." style="width:100%; height:150px; background:#000; color:#fff; border:1px solid #444; padding:5px;"></textarea>
+                    <button class="btn-blue" onclick="submitTicket()">SUBMIT</button>
+                </div>
+                <div style="flex:1; border-left:1px solid #444; padding-left:10px;">
+                    <h3>MY TICKETS</h3>
+                    <div id="ticket-list" style="overflow-y:auto; height:100%;">Checking...</div>
+                </div>
             </div>
-            <div class="panel-header" style="border-top:var(--border)">Voice (Beta)</div>
-            <div style="padding:10px;">
-                <button id="voice-btn" onclick="toggleVoice()">Join Voice</button>
-            </div>
+            <button class="btn-red" style="margin-top:10px;" onclick="toggleModal('support-modal')">CLOSE</button>
         </div>
     </div>
 
