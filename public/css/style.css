@@ -1,12 +1,22 @@
+/* =========================================
+   STICK N' TRADE - MASTER STYLESHEET
+   Theme: Retro Arcade / Cyberpunk Terminal
+   ========================================= */
+
 :root {
     --bg-dark: #050505;
-    --bg-panel: #111111;
+    --bg-panel: #0a0a0a;
     --border-color: #333;
+    
+    /* NEON PALETTE */
     --neon-gold: #ffcc00;
     --neon-blue: #00ccff;
     --neon-red: #ff3333;
     --neon-green: #00ff66;
+    
     --text-main: #e0e0e0;
+    --font-retro: 'Press Start 2P', cursive;
+    --font-term: 'VT323', monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -14,24 +24,25 @@
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
-    font-family: 'VT323', monospace;
+    font-family: var(--font-term);
     font-size: 18px;
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* Prevent body scroll, use internal scrolling */
     display: flex;
     flex-direction: column;
 }
 
-/* --- SCANLINE EFFECT (RETRO) --- */
+/* --- SCANLINE OVERLAY --- */
 .scanlines {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
     background-size: 100% 4px;
     pointer-events: none;
-    z-index: 999;
+    z-index: 9999;
+    opacity: 0.6;
 }
 
-/* --- UTILS --- */
+/* --- UTILITIES --- */
 .hidden { display: none !important; }
 .text-gold { color: var(--neon-gold); }
 .text-blue { color: var(--neon-blue); }
@@ -40,83 +51,94 @@ body {
 .blink { animation: blinker 1s linear infinite; }
 @keyframes blinker { 50% { opacity: 0; } }
 
-/* --- BUTTONS & INPUTS --- */
+/* --- INPUTS & BUTTONS --- */
 button {
-    font-family: 'Press Start 2P', cursive;
+    font-family: var(--font-retro);
     font-size: 10px;
     padding: 10px 15px;
     border: 2px solid #444;
-    background: #222;
+    background: #111;
     color: #fff;
     cursor: pointer;
     text-transform: uppercase;
+    transition: all 0.1s;
 }
-button:hover { filter: brightness(1.2); }
-button:active { transform: translateY(2px); }
+button:hover { filter: brightness(1.3); transform: translateY(-1px); }
+button:active { transform: translateY(1px); }
 
-.btn-blue { background: #004466; border-color: var(--neon-blue); }
-.btn-red { background: #660000; border-color: var(--neon-red); }
-.btn-green { background: #004400; border-color: var(--neon-green); }
-.btn-gold { background: #664400; border-color: var(--neon-gold); }
-.btn-grey { background: #333; color: #fff; border: 1px solid #555; }
+.btn-blue { background: #002244; border-color: var(--neon-blue); }
+.btn-red { background: #440000; border-color: var(--neon-red); }
+.btn-green { background: #003300; border-color: var(--neon-green); }
+.btn-gold { background: #443300; border-color: var(--neon-gold); }
+.btn-grey { background: #222; border-color: #555; color: #ccc; }
+
+.btn-green-solid { background: var(--neon-green); color: #000; border: 2px solid #fff; font-weight: bold; }
 .btn-action { width: 100%; margin-top: 5px; }
 
 input, select, textarea {
     background: #000;
     border: 1px solid #444;
     color: var(--neon-green);
-    font-family: 'VT323', monospace;
+    font-family: var(--font-term);
     font-size: 1.2rem;
-    padding: 5px;
+    padding: 8px;
 }
 textarea { resize: none; }
+select { cursor: pointer; }
 
-/* --- PLAYER UI LAYOUT (index.html) --- */
+/* =========================================
+   PLAYER UI (index.html)
+   ========================================= */
+
 #app-container {
     display: flex; flex-direction: column; height: 100%; padding: 10px; gap: 10px; flex: 1;
 }
 
+/* HEADER HUD */
 #top-hud {
     display: flex; justify-content: space-between; align-items: center;
     background: var(--bg-panel); border: 2px solid var(--border-color);
-    padding: 10px; font-family: 'Press Start 2P', cursive; font-size: 12px;
+    padding: 10px; font-family: var(--font-retro); font-size: 12px;
 }
 
+/* GAME TABS */
 #game-tabs { display: flex; gap: 5px; }
 .tab { flex: 1; background: #1a1a1a; border: 1px solid #333; color: #666; }
 .tab.active { background: var(--neon-gold); color: #000; border-color: #fff; }
 
+/* MAIN GRID AREA */
 .main-grid { display: flex; flex: 1; gap: 10px; overflow: hidden; }
 
-/* ARENA SECTION */
+/* LEFT: ARENA */
 .arena-section {
-    flex: 2; display: flex; gap: 5px;
+    flex: 3; display: flex; gap: 5px;
     background: #000; border: 2px solid var(--border-color);
-    background-image: radial-gradient(#111 15%, transparent 16%), radial-gradient(#111 15%, transparent 16%);
+    background-image: 
+        linear-gradient(rgba(10, 20, 10, 0.8) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 20, 10, 0.8) 1px, transparent 1px);
     background-size: 20px 20px;
     padding: 20px;
 }
 
 .player-pod { flex: 1; display: flex; flex-direction: column; border: 2px solid #333; background: #080808; }
-.pod-header { background: #222; color: #888; text-align: center; padding: 5px; font-family: 'Press Start 2P'; font-size: 10px; }
+.pod-header { background: #222; color: #888; text-align: center; padding: 5px; font-family: var(--font-retro); font-size: 10px; }
 .pod-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .avatar-box { width: 64px; height: 64px; background: #111; border: 2px dashed #333; display: flex; align-items: center; justify-content: center; }
 .player-name { font-size: 1.5rem; color: var(--neon-blue); }
-.match-score { font-size: 3rem; font-family: 'Press Start 2P'; }
+.match-score { font-size: 3rem; font-family: var(--font-retro); }
 
 .match-center { flex: 1.5; display: flex; flex-direction: column; border: 1px solid #222; }
-.status-bar { background: #222; color: var(--neon-gold); text-align: center; padding: 5px; font-family: 'Press Start 2P'; font-size: 10px; }
+.status-bar { background: #222; color: var(--neon-gold); text-align: center; padding: 5px; font-family: var(--font-retro); font-size: 10px; }
 #match-display { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-.waiting-text { font-size: 2rem; color: #444; font-family: 'Press Start 2P'; }
+.waiting-text { font-size: 2rem; color: #444; font-family: var(--font-retro); }
 
-/* SIDEBAR SECTION */
+/* RIGHT: SIDEBAR */
 .sidebar-section { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
 .panel { background: var(--bg-panel); border: 2px solid var(--border-color); display: flex; flex-direction: column; }
-.panel-header { background: #000; border-bottom: 2px solid #333; padding: 8px; font-family: 'Press Start 2P'; font-size: 10px; color: #888; }
+.panel-header { background: #000; border-bottom: 2px solid #333; padding: 8px; font-family: var(--font-retro); font-size: 10px; color: #888; }
 .panel-body { padding: 10px; flex: 1; overflow-y: auto; }
-.scrollable { max-height: 200px; }
 
-/* PLAYER LIST & CHAT */
+/* LISTS & CHAT */
 .p-row { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #222; font-size: 1rem; }
 .p-badge { width: 10px; height: 10px; display: inline-block; margin-right: 5px; }
 .badge-admin { background: var(--neon-red); box-shadow: 0 0 5px var(--neon-red); }
@@ -126,65 +148,106 @@ textarea { resize: none; }
 .chat-msg { margin-bottom: 4px; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px; }
 .chat-user { color: var(--neon-gold); font-weight: bold; }
 
-/* --- ADMIN PANEL SPECIFIC (admin.html) --- */
-.admin-header { display: flex; gap: 10px; align-items: center; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 10px; }
-.admin-title { font-family: 'Press Start 2P'; color: var(--neon-gold); font-size: 20px; margin-right: auto; }
+/* =========================================
+   ADMIN PANEL (admin.html)
+   ========================================= */
 
-.admin-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 20px;
-    flex: 1;
-    overflow: hidden;
+.admin-header {
+    display: flex; gap: 10px; align-items: center; 
+    padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 10px;
+}
+.admin-title {
+    font-family: var(--font-retro); color: var(--neon-gold); font-size: 20px; margin-right: auto;
 }
 
+/* THE ADMIN GRID LAYOUT */
+.admin-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    grid-template-rows: 55% 40%;    /* Top area bigger, bottom area smaller */
+    gap: 20px;
+    flex: 1;
+    overflow: hidden; /* Prevent full page scroll */
+}
+
+/* Individual Admin Panels */
 .admin-panel {
     border: 2px solid #333;
-    background: #111;
+    background: #080808;
     padding: 15px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: 100%;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
-/* Ensure the Bottom Support Panel spans both columns */
-.admin-panel[style*="grid-column: span 2"] { grid-column: span 2; }
 
-.admin-input { background: #000; border: 1px solid #444; color: #fff; padding: 10px; font-family: 'VT323'; font-size: 1.2rem; width: 100%; margin-bottom: 5px; }
+.panel-title {
+    font-family: var(--font-retro); color: #fff; font-size: 12px; margin-bottom: 15px;
+    border-bottom: 2px solid #333; padding-bottom: 5px; text-transform: uppercase;
+}
+
+/* Form Styles inside Admin */
+.admin-input {
+    background: #000; border: 1px solid #444; color: #fff; 
+    padding: 10px; font-family: var(--font-term); font-size: 1.2rem; 
+    width: 100%; margin-bottom: 8px;
+}
+.admin-input:focus { border-color: var(--neon-green); }
+
 .row-inputs { display: flex; gap: 10px; margin-bottom: 5px; }
 
-/* Admin Lists */
-.player-row { background: #1a1a1a; padding: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; cursor: pointer; }
-.player-row:hover { border-color: var(--neon-gold); }
+/* Admin Lists (Player Rows) */
+.player-row {
+    background: #111; padding: 10px; margin-bottom: 5px; 
+    display: flex; justify-content: space-between; align-items: center; 
+    border: 1px solid #333; cursor: pointer; transition: 0.2s;
+}
+.player-row:hover { border-color: var(--neon-gold); background: #1a1a1a; }
+.player-row span { font-family: var(--font-term); }
 
-.ticket-row { display: flex; justify-content: space-between; padding: 10px; background: #000; border: 1px solid #333; margin-bottom: 5px; cursor: pointer; }
+/* Ticket Rows */
+.ticket-row {
+    display: flex; justify-content: space-between; padding: 10px; 
+    background: #000; border: 1px solid #333; margin-bottom: 5px; 
+    cursor: pointer; font-family: var(--font-term);
+}
 .ticket-row:hover { border-color: #fff; }
 
-.ticket-status { padding: 2px 5px; font-size: 10px; border-radius: 4px; font-family: 'Press Start 2P'; }
-.status-open { background: #333; color: #fff; border: 1px solid #fff; }
+.ticket-status { 
+    padding: 4px 8px; font-size: 10px; border-radius: 0; 
+    font-family: var(--font-retro); 
+}
+.status-open { background: #111; color: var(--neon-green); border: 1px solid var(--neon-green); }
 .status-closed { background: #220000; color: #f00; border: 1px solid #f00; }
 
-.ticket-thread-box { flex: 1; background: #000; border: 1px solid #333; padding: 10px; overflow-y: auto; font-family: 'VT323'; color: #aaa; margin-bottom: 10px; }
-.thread-msg { margin-bottom: 10px; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-.msg-admin { color: var(--neon-green); font-weight: bold; }
-.msg-user { color: var(--neon-gold); font-weight: bold; }
+/* Ticket Thread View */
+.ticket-thread-box {
+    flex: 1; background: #000; border: 1px solid #333; 
+    padding: 15px; overflow-y: auto; font-family: var(--font-term); 
+    color: #aaa; margin-bottom: 10px;
+}
+.thread-msg { 
+    margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; 
+}
+.msg-admin { color: var(--neon-green); font-weight: bold; margin-bottom: 2px; }
+.msg-user { color: var(--neon-gold); font-weight: bold; margin-bottom: 2px; }
 
 /* --- AUTH & MODALS --- */
 #auth-overlay, .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 1000;
+    background: rgba(0,0,0,0.95); z-index: 1000;
     display: flex; align-items: center; justify-content: center;
 }
 .pixel-box, .modal-box {
     background: #111; border: 4px solid #fff;
-    padding: 30px; width: 400px; max-width: 90%;
+    padding: 30px; width: 450px; max-width: 90%;
     box-shadow: 10px 10px 0px #000;
 }
-.title-gold { font-family: 'Press Start 2P'; color: var(--neon-gold); text-align: center; margin-bottom: 20px; }
+.title-gold { font-family: var(--font-retro); color: var(--neon-gold); text-align: center; margin-bottom: 20px; }
 
-/* --- SCROLLBARS --- */
-::-webkit-scrollbar { width: 8px; }
+/* --- SCROLLBARS (Webkit) --- */
+::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
