@@ -1,8 +1,7 @@
-/* RETRO.IO STYLE */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 body {
-    background-color: #2b2b2b;
+    background-color: #1a1a1a;
     color: #fff;
     font-family: 'VT323', monospace;
     margin: 0;
@@ -11,108 +10,103 @@ body {
 }
 
 /* --- LAYOUT --- */
-.wrapper { display: flex; height: 100%; }
-.col { display: flex; flex-direction: column; padding: 5px; gap: 5px; }
-.side { width: 280px; background: #222; border-right: 2px solid #000; }
-.main { flex: 1; position: relative; background: #333; }
+.wrapper { display: flex; height: 100%; padding: 10px; gap: 10px; box-sizing: border-box; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.side { width: 280px; min-width: 200px; }
+.main { flex: 1; }
+.full-h { height: 100%; }
 
-/* --- PLAYER LIST (Retro.io Style) --- */
-.player-list { overflow-y: auto; flex: 1; }
-.p-bar {
-    background: linear-gradient(90deg, #0099ff, #0066cc);
-    border: 2px solid #004488;
-    margin-bottom: 4px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    color: #fff;
-    font-size: 20px;
-    text-shadow: 1px 1px 0 #000;
-    cursor: pointer;
-}
-.p-bar.admin { background: linear-gradient(90deg, #ff3333, #cc0000); border-color: #880000; }
-.p-bar:hover { filter: brightness(1.2); }
-.p-icon { width: 24px; margin-right: 8px; image-rendering: pixelated; }
-
-/* --- CHAT (Minecraft Style) --- */
-.chat-box {
-    height: 250px;
-    background: rgba(0,0,0,0.6);
-    display: flex;
+.pixel-box { 
+    background: #2b2b36; 
+    border: 4px solid #000; 
+    padding: 10px; 
+    display: flex; 
     flex-direction: column;
-    border-top: 2px solid #555;
-}
-.chat-hist {
-    flex: 1;
-    overflow-y: auto;
-    padding: 5px;
-    font-size: 18px;
-    text-shadow: 1px 1px 0 #000;
-}
-.chat-input {
-    background: rgba(0,0,0,0.8);
-    border: none;
-    color: white;
-    padding: 8px;
-    font-family: 'VT323';
-    font-size: 18px;
-    outline: none;
+    box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
 }
 
-/* --- GAME PANEL --- */
-.game-panel {
+/* --- AUTH MODAL (FIXED DIMENSIONS) --- */
+#auth-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
     display: flex;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    background-image: radial-gradient(#444 10%, transparent 10%);
+    align-items: center;
+}
+
+.modal-box {
+    background: #222;
+    border: 4px solid #fff;
+    padding: 40px;
+    text-align: center;
+    width: 400px; /* Fixed Width */
+    max-width: 90%; /* Mobile Safe */
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+/* --- INPUTS & BUTTONS --- */
+input, select {
+    background: #000;
+    border: 2px solid #555;
+    color: #0f0;
+    width: 100%;
+    padding: 10px; /* Bigger padding */
+    font-family: 'VT323';
+    font-size: 22px; /* Bigger font */
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+button {
+    background: #444;
+    border: 2px solid #fff;
+    color: #fff;
+    font-family: 'VT323';
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    text-transform: uppercase;
+    width: 100%;
+}
+button:hover { background: #555; transform: translateY(-2px); }
+.blue { background: #0088ff; border-color: #004488; }
+.red { background: #ff4444; border-color: #880000; }
+.green { background: #00cc00; border-color: #006600; }
+
+/* --- GAME ELEMENTS --- */
+.game-panel { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    background-image: radial-gradient(#333 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
-.top-bar {
-    display: flex; width: 90%; justify-content: space-between; 
-    font-size: 40px; margin-bottom: 20px;
-    text-shadow: 3px 3px 0 #000;
+.seats { 
+    display: flex; 
+    justify-content: space-around; 
+    align-items: center; 
+    flex: 1; 
+    width: 100%;
 }
 
-.seats { display: flex; width: 90%; justify-content: space-between; align-items: center; }
 .seat {
-    width: 250px; height: 350px;
-    background: #222;
-    border: 4px solid #555;
-    display: flex; flex-direction: column;
+    width: 250px;
+    height: 350px;
+    background: rgba(0,0,0,0.5);
+    border: 4px dashed #555;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
+    padding: 15px;
 }
-.seat.occupied { border-color: #fff; background: #333; }
+.seat.occupied { border-style: solid; border-color: #fff; background: #222; }
 .seat.winner { border-color: #ffd700; box-shadow: 0 0 30px #ffd700; }
 
-.controls { width: 100%; margin-top: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-
-/* --- ELEMENTS --- */
-button {
-    background: #444; border: 2px solid #000; color: #fff;
-    font-family: 'VT323'; font-size: 20px; cursor: pointer;
-    text-transform: uppercase; padding: 5px;
-}
-button:hover { background: #555; }
-button.green { background: #00cc00; }
-button.red { background: #cc0000; }
-button.blue { background: #0088ff; }
-
-input, select {
-    background: #000; border: 2px solid #555; color: #0f0;
-    font-family: 'VT323'; font-size: 20px; padding: 5px;
-}
-
-/* AUTH MODAL */
-#auth-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center; z-index: 100;
-}
-.modal-box {
-    background: #222; border: 4px solid #fff; padding: 40px;
-    text-align: center; width: 400px;
-}
+/* --- TEXT STYLES --- */
+.neon { color: #ffd700; text-shadow: 2px 2px 0 #000; }
+.chat-box { flex: 1; overflow-y: auto; font-size: 18px; padding: 5px; }
+.p-bar { border-bottom: 1px solid #444; padding: 5px; display: flex; justify-content: space-between; }
