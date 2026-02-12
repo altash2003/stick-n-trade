@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STICK N' TRADE CASINO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <h2 style="color:var(--neon-blue); margin-bottom:20px;">STICK N' TRADE</h2>
+            <div id="auth-msg" class="text-red"></div>
+            <input type="text" id="username" placeholder="Username (5-12 chars)">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Enter Casino</button>
+            <p style="margin-top:10px; font-size:0.8rem; cursor:pointer;" onclick="register()">Or Register</p>
+        </div>
+    </div>
+
+    <div id="hud">
+        <div class="stat-box">
+            <span>CREDITS:</span>
+            <span id="credit-bal" class="credit-display">0</span>
+        </div>
+        <div class="stat-box">
+            <span id="status-text">WAITING...</span>
+            <span id="timer-text" style="color:yellow">00</span>
+        </div>
+        <div class="stat-box">
+            <div id="conn-status">CONNECTING...</div>
+            <button onclick="refreshState()" style="padding:5px 10px; font-size:0.8rem; width:auto; margin-left:10px;">REFRESH</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div class="panel" id="left-sidebar">
+            <div class="panel-header">Active Players (<span id="player-count">0</span>)</div>
+            <div class="panel-content" id="player-list"></div>
+            <div class="panel-header" style="border-top:var(--border)">Support</div>
+            <div class="panel-content" style="flex:0 0 150px;">
+                <button onclick="openTicketModal('topup')" style="margin-bottom:5px;">Request Topup</button>
+                <button onclick="openTicketModal('withdraw')">Withdraw</button>
+            </div>
+        </div>
+
+        <div id="main-stage">
+            <div style="padding:10px; border-bottom:var(--border); display:flex; gap:10px;">
+                <button onclick="switchMode('classic')">Classic Casino</button>
+                <button onclick="switchMode('duel')">Duel Arena</button>
+            </div>
+
+            <div id="view-classic" class="panel-content">
+                <h2 style="text-align:center; color:var(--neon-pink)">COLOR GAME</h2>
+                <div class="dice-display" id="classic-result">
+                    <span>?</span><span>?</span><span>?</span>
+                </div>
+                <div style="text-align:center" id="classic-history"></div>
+                
+                <div class="game-controls">
+                    <button class="bet-btn" onclick="placeBet('RED')">RED</button>
+                    <button class="bet-btn" onclick="placeBet('GREEN')">GREEN</button>
+                    <button class="bet-btn" onclick="placeBet('BLUE')">BLUE</button>
+                </div>
+                <div style="text-align:center; margin-top:20px;">
+                    <input type="number" id="bet-amount" placeholder="Bet Amount" style="width:150px;">
+                </div>
+            </div>
+
+            <div id="view-duel" class="panel-content hidden">
+                <div class="duel-layout">
+                    <div class="seat" id="seat-left">
+                        <div class="seat-avatar">👤</div>
+                        <div class="seat-name">Empty</div>
+                        <button onclick="sitDuel('left')">SIT HERE</button>
+                    </div>
+
+                    <div class="vs-center">
+                        <h1 style="font-size:3rem; color:var(--neon-pink)">VS</h1>
+                        <div id="duel-info">Waiting for players...</div>
+                        <div id="duel-controls" class="hidden proposal-box">
+                            </div>
+                    </div>
+
+                    <div class="seat" id="seat-right">
+                        <div class="seat-avatar">👤</div>
+                        <div class="seat-name">Empty</div>
+                        <button onclick="sitDuel('right')">SIT HERE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="right-sidebar">
+            <div class="panel-header">Public Chat</div>
+            <div class="panel-content" id="chat-box"></div>
+            <div style="padding:10px; border-top:var(--border);">
+                <input type="text" id="chat-input" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendChat()">
+            </div>
+            <div class="panel-header" style="border-top:var(--border)">Voice (Beta)</div>
+            <div style="padding:10px;">
+                <button id="voice-btn" onclick="toggleVoice()">Join Voice</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
