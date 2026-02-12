@@ -4,12 +4,9 @@ let me = "";
 async function auth(type) {
     const u = document.getElementById('u').value.trim();
     const p = document.getElementById('p').value.trim();
-    const err = document.getElementById('auth-err');
+    const err = document.getElementById('err');
     
-    if(!u || !p) {
-        err.innerText = "Please fill all fields.";
-        return;
-    }
+    if(!u || !p) return err.innerText = "Please fill all fields.";
     
     err.innerText = "Processing...";
     
@@ -22,7 +19,7 @@ async function auth(type) {
         const data = await res.json();
         
         if(res.ok) {
-            if(type === 'register') {
+            if(type==='register') {
                 err.style.color = "#00ff00";
                 err.innerText = "Success! Please Login.";
             } else {
@@ -31,32 +28,17 @@ async function auth(type) {
                 socket.emit('join', me);
             }
         } else {
-            err.style.color = "#ff4444";
-            err.innerText = data.error || "Request Failed";
+            err.style.color = "red";
+            err.innerText = data.error;
         }
-    } catch(e) {
-        err.innerText = "Server Error. Check Connection.";
-    }
+    } catch(e) { err.innerText = "Server Error. Check Database."; }
 }
 
 function logout() { fetch('/api/logout', {method:'POST'}).then(()=>location.reload()); }
 
-document.getElementById('chat-in').onkeypress = e => {
-    if(e.key==='Enter') { socket.emit('chat', e.target.value); e.target.value=''; }
-};
-socket.on('msg', m => {
-    const d = document.createElement('div');
-    d.innerHTML = `<span style="color:${m.color}">${m.name}:</span> ${m.text}`;
-    document.getElementById('chat-hist').appendChild(d);
-    document.getElementById('chat-hist').scrollTop = 9999;
-});
-
 socket.on('state', ({players, duel}) => {
     document.getElementById('plist').innerHTML = Object.values(players).map(p => 
-        `<div class="p-bar">
-            <span style="color:${p.color}">${p.name}</span> 
-            <span class="neon">$${p.balance}</span>
-        </div>`
+        `<div class="p-bar"><span style="color:${p.color}">${p.name}</span> <span class="neon">$${p.balance}</span></div>`
     ).join('');
 
     document.getElementById('pot').innerText = `POT: ${duel.pot}`;
@@ -66,24 +48,21 @@ socket.on('state', ({players, duel}) => {
     seat('seat-l', 'l', duel, players);
     seat('seat-r', 'r', duel, players);
 
-    const center = document.getElementById('vis');
-    if(duel.status === 'rolling') center.innerText = "ROLLING...";
+    // Visuals
+    const vis = document.getElementById('vis');
+    if(duel.status==='rolling') vis.innerText = "ROLLING...";
     else if(duel.res) {
-        if(duel.game === 'coin') center.innerText = duel.res.val;
-        else if(duel.game === 'dice') center.innerText = `${duel.res.l.reduce((a,b)=>a+b)} - ${duel.res.r.reduce((a,b)=>a+b)}`;
-        else center.innerText = duel.res.val;
-    } else center.innerText = "VS";
+        if(duel.game === 'coin') vis.innerText = duel.res.val;
+        else if(duel.game === 'dice') vis.innerText = `${duel.res.l.reduce((a,b)=>a+b)} - ${duel.res.r.reduce((a,b)=>a+b)}`;
+    } else vis.innerText = "VS";
 
     const isMe = (duel.l && players[duel.l]?.name===me) || (duel.r && players[duel.r]?.name===me);
-    const myTurn = duel.status==='act' && isMe && !duel.actions[duel.l && players[duel.l].name===me ? 'l' : 'r'];
-    document.getElementById('act-btn').style.display = myTurn ? 'inline-block' : 'none';
+    const mySide = (duel.l && players[duel.l]?.name===me) ? 'l' : 'r';
+    const myTurn = duel.status==='act' && isMe && !duel.actions[mySide];
+    
+    document.getElementById('act-btn').style.display = myTurn ? 'block' : 'none';
     document.getElementById('act-btn').innerText = duel.game==='dice' ? 'ROLL!' : 'SPIN!';
-
-    const seated = isMe;
-    document.getElementById('spec-ui').style.display = (!seated && duel.status==='open') ? 'block' : 'none';
 });
-
-socket.on('balance_update', bal => { /* Sync handled by state update */ });
 
 function seat(id, side, duel, players) {
     const el = document.getElementById(id);
@@ -91,7 +70,7 @@ function seat(id, side, duel, players) {
     
     el.className = `seat ${p?'occupied':''} ${duel.status==='win'&&duel.res&&duel.winnerId===duel[side]?'winner':''}`;
 
-    if(!p) el.innerHTML = `<button onclick="socket.emit('seat','${side}')" class="blue" style="height:100%">SIT HERE</button>`;
+    if(!p) el.innerHTML = `<button onclick="socket.emit('seat','${side}')" class="blue">SIT HERE</button>`;
     else {
         const isMe = p.name === me;
         el.innerHTML = `
@@ -101,29 +80,16 @@ function seat(id, side, duel, players) {
             ${isMe && duel.status==='open' ? `
                 <div style="width:100%; margin-top:auto;">
                     <input id="bet" placeholder="BET" onchange="upd()" value="${duel.bet}">
-                    <select id="game" onchange="upd()">
-                        <option value="coin">Coin</option><option value="dice">Dice</option><option value="wheel">Wheel</option>
-                    </select>
-                    <select id="mode" onchange="upd()">
-                        <option value="bo3">Best of 3</option><option value="race3">Race to 3</option>
+                    <select id="game" onchange="upd()" style="margin:5px 0;">
+                        <option value="coin">Coin</option><option value="dice">Dice</option>
                     </select>
                     <button onclick="socket.emit('lock')" class="${duel[side+'Lock']?'green':'blue'}">${duel[side+'Lock']?'READY':'LOCK'}</button>
                     <button onclick="socket.emit('leave')" class="red" style="margin-top:5px;">LEAVE</button>
                 </div>
-            ` : `<div style="margin-top:auto; font-size:24px; color:${duel[side+'Lock']?'#0f0':'#888'}">${duel[side+'Lock']?'READY':'WAITING...'}</div>`}
+            ` : `<div style="margin-top:auto; font-size:24px; color:${duel[side+'Lock']?'#0f0':'#888'}">${duel[side+'Lock']?'READY':'WAITING'}</div>`}
         `;
     }
 }
 
-function upd() { 
-    socket.emit('update_settings', { 
-        bet: document.getElementById('bet').value, 
-        game: document.getElementById('game').value, 
-        mode: document.getElementById('mode').value 
-    }); 
-}
+function upd() { socket.emit('update_settings', { bet: document.getElementById('bet').value, game: document.getElementById('game').value, mode: 'bo3' }); }
 function act() { socket.emit('act'); }
-function spec(side) { 
-    const amt = document.getElementById('s-amt').value;
-    if(amt>0) socket.emit('spec_bet', {side, amt}); 
-}
