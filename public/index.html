@@ -1,179 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STICK N' TRADE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Stick N' Duel</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="scanlines"></div>
-
-    <div id="auth-overlay">
-        <div class="pixel-box auth-container">
-            <h1 class="title-gold">STICK N' TRADE</h1>
-            <div id="auth-msg" class="text-red blink"></div>
-            
-            <div class="input-group">
-                <label>USERNAME</label>
-                <input type="text" id="username" maxlength="12">
-            </div>
-            <div class="input-group">
-                <label>PASSWORD</label>
-                <input type="password" id="password">
-            </div>
-
-            <button class="btn-blue full-width" onclick="login()">LOGIN</button>
-            <button class="btn-red full-width" style="margin-top:10px" onclick="register()">CREATE ACCOUNT</button>
+    <div id="auth-modal">
+        <div class="pixel-box center">
+            <h1 class="neon">STICK N' DUEL</h1>
+            <p id="auth-err" style="color:red"></p>
+            <input id="u" placeholder="Username (5-12 chars)" maxlength="12">
+            <input id="p" type="password" placeholder="Password" maxlength="12">
+            <button onclick="auth('login')">LOGIN</button>
+            <button onclick="auth('register')" class="blue">REGISTER</button>
         </div>
     </div>
 
-    <div id="app-container" class="hidden">
-        
-        <header id="top-hud">
-            <div class="logo-section">
-                <span class="text-gold">STICK N' TRADE</span>
-                <span class="text-grey"> | </span>
-                <span>YOU: <span id="my-username" class="text-blue">...</span></span>
+    <div class="wrapper">
+        <div class="col side">
+            <div class="pixel-box full-h">
+                <h3>PLAYERS ONLINE</h3>
+                <div id="plist"></div>
+                <div style="margin-top:auto">
+                    <a href="/admin.html" target="_blank" style="color:#555; text-decoration:none;">ADMIN PANEL</a>
+                </div>
             </div>
-            <div class="credits-section">
-                CREDITS: <span id="credit-bal" class="text-green">LOADING...</span> TC
-            </div>
-            <div class="nav-buttons">
-                <button onclick="refreshState()">REFRESH</button>
-                <button class="btn-gold" onclick="toggleModal('support-modal')">SUPPORT</button>
-                <button onclick="logout()">LOGOUT</button>
-            </div>
-        </header>
+        </div>
 
-        <nav id="game-tabs">
-            <button class="tab active" onclick="switchGame('DICE')">DICE</button>
-            <button class="tab" onclick="switchGame('COIN')">COIN</button>
-            <button class="tab" onclick="switchGame('HILO')">HI-LO</button>
-            <button class="tab" onclick="switchGame('RPS')">R.P.S.</button>
-        </nav>
-
-        <div class="main-grid">
-            
-            <div class="arena-section">
-                
-                <div class="player-pod" id="pod-left">
-                    <div class="pod-header">PLAYER 1</div>
-                    <div class="pod-content">
-                        <div class="avatar-box" id="p1-avatar"></div>
-                        <div class="player-name" id="p1-name">EMPTY</div>
-                        <div class="match-score hidden" id="p1-score">0</div>
-                    </div>
-                    <button class="btn-seat" id="btn-sit-left" onclick="sitDuel('left')">TAKE SEAT 1</button>
+        <div class="col main">
+            <div class="pixel-box game-panel">
+                <div class="top-info">
+                    <span id="sc-l" class="blue-t">0</span>
+                    <span id="pot" class="yellow-t">POT: 0</span>
+                    <span id="sc-r" class="red-t">0</span>
                 </div>
 
-                <div class="match-center">
-                    <div class="status-bar" id="match-status">WAITING FOR PLAYERS...</div>
+                <div class="arena">
+                    <div id="seat-l" class="seat"></div>
                     
-                    <div id="match-display">
-                        <div class="waiting-text blink">WAITING</div>
+                    <div class="center-stage">
+                        <div id="vis-text" style="font-size:50px; text-shadow:2px 2px 0 #000;">VS</div>
+                        <button id="act-btn" onclick="act()" style="display:none; font-size:30px; background:#ff00ff;">ACTION!</button>
                     </div>
-
-                    <div id="duel-controls" class="hidden">
-                        <div class="control-panel">
-                            <label>MATCH SETTINGS</label>
-                            <select id="round-setting">
-                                <option value="1">1 Round (Sudden Death)</option>
-                                <option value="3">Best of 3</option>
-                                <option value="5">Best of 5</option>
-                            </select>
-                            <input type="number" id="proposal-bet" placeholder="BET AMOUNT">
-                            <button class="btn-green" onclick="proposeDuel()">PROPOSE MATCH</button>
-                            <button class="btn-red" onclick="socket.emit('duel_leave')">LEAVE SEAT</button>
-                        </div>
-                    </div>
-
-                    <div id="proposal-alert" class="hidden pixel-box">
-                        <div class="text-gold">CHALLENGE RECEIVED!</div>
-                        <div id="proposal-details"></div>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <button class="btn-green" onclick="socket.emit('duel_respond', 'ACCEPT')">ACCEPT</button>
-                            <button class="btn-red" onclick="socket.emit('duel_respond', 'DECLINE')">DECLINE</button>
-                        </div>
-                    </div>
+                    
+                    <div id="seat-r" class="seat"></div>
                 </div>
 
-                <div class="player-pod" id="pod-right">
-                    <div class="pod-header">PLAYER 2</div>
-                    <div class="pod-content">
-                        <div class="avatar-box" id="p2-avatar"></div>
-                        <div class="player-name" id="p2-name">EMPTY</div>
-                        <div class="match-score hidden" id="p2-score">0</div>
-                    </div>
-                    <button class="btn-seat" id="btn-sit-right" onclick="sitDuel('right')">TAKE SEAT 2</button>
+                <div id="spec-bet" style="display:none; justify-content:center; gap:10px; margin-top:10px;">
+                    <span>BET ON WINNER:</span>
+                    <input id="s-amt" type="number" placeholder="$" style="width:60px">
+                    <button onclick="spec('l')" class="blue">LEFT</button>
+                    <button onclick="spec('r')" class="red">RIGHT</button>
                 </div>
-
             </div>
+        </div>
 
-            <div class="sidebar-section">
-                
-                <div class="panel">
-                    <div class="panel-header">SPECTATOR BETTING</div>
-                    <div class="panel-body">
-                        <div class="bet-info">
-                            <span>WALLET: <span id="mini-bal" class="text-gold">0</span> TC</span>
-                        </div>
-                        <div class="bet-inputs">
-                            <input type="number" id="spec-amount" placeholder="AMOUNT">
-                            <div class="bet-buttons">
-                                <button class="btn-blue" onclick="placeSpecBet('left')">BET P1</button>
-                                <button class="btn-red" onclick="placeSpecBet('right')">BET P2</button>
-                            </div>
-                        </div>
-                        <div id="active-spec-bet" class="text-green" style="margin-top:5px; font-size:0.8rem;"></div>
-                    </div>
-                </div>
-
-                <div class="panel flex-grow">
-                    <div class="panel-header">PLAYERS ONLINE (<span id="online-count">0</span>)</div>
-                    <div class="panel-body scrollable" id="player-list">
-                        </div>
-                </div>
-
-                <div class="panel flex-grow" style="max-height: 300px;">
-                    <div class="panel-header">LIVE CHAT</div>
-                    <div class="panel-body scrollable" id="chat-box">
-                        </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Type here..." onkeypress="if(event.key==='Enter') sendChat()">
-                    </div>
-                </div>
-
+        <div class="col side">
+            <div class="pixel-box full-h chat-box">
+                <div id="chat-hist"></div>
+                <input id="chat-in" placeholder="Chat here...">
             </div>
         </div>
     </div>
 
-    <div id="support-modal" class="modal hidden">
-        <div class="pixel-box modal-box">
-            <h2 class="title-gold">SUPPORT</h2>
-            <div style="display:flex; gap:20px; height: 300px;">
-                <div style="flex:1;">
-                    <h3>OPEN NEW TICKET</h3>
-                    <select id="ticket-type" style="width:100%; margin-bottom:10px;">
-                        <option value="topup">Request Topup</option>
-                        <option value="withdraw">Request Withdraw</option>
-                        <option value="issue">Report Issue</option>
-                    </select>
-                    <textarea id="ticket-msg" placeholder="Describe your issue..." style="width:100%; height:150px; background:#000; color:#fff; border:1px solid #444; padding:5px;"></textarea>
-                    <button class="btn-blue" onclick="submitTicket()">SUBMIT</button>
-                </div>
-                <div style="flex:1; border-left:1px solid #444; padding-left:10px;">
-                    <h3>MY TICKETS</h3>
-                    <div id="ticket-list" style="overflow-y:auto; height:100%;">Checking...</div>
-                </div>
-            </div>
-            <button class="btn-red" style="margin-top:10px;" onclick="toggleModal('support-modal')">CLOSE</button>
-        </div>
-    </div>
-
-    <script src="js/app.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
