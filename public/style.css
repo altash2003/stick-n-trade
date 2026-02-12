@@ -1,0 +1,22 @@
+body { background: #202028; color: #fff; font-family: 'VT323', monospace; margin: 0; overflow: hidden; }
+.wrapper { display: flex; height: 100vh; padding: 10px; gap: 10px; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.side { width: 250px; }
+.main { flex: 1; }
+.full-h { height: 100%; }
+
+.pixel-box { background: #2b2b36; border: 4px solid #000; padding: 10px; display: flex; flex-direction: column; }
+.chat-box { flex: 1; display: flex; flex-direction: column; }
+#history { flex: 1; overflow-y: scroll; font-size: 14px; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.center { margin: 100px auto; width: 300px; text-align: center; }
+
+h1, h3 { margin: 0 0 10px 0; border-bottom: 2px solid #555; }
+.neon { color: #ffd700; text-shadow: 2px 2px 0 #000; }
+.blue-t { color: #00bfff; } .red-t { color: #ff4444; } .yellow-t { color: #ffd700; }
+
+.seat { height: 150px; border: 2px dashed #555; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#arena { display: flex; justify-content: space-around; align-items: center; height: 300px; }
+input { background: #000; color: #fff; border: 1px solid #555; width: 100%; margin: 5px 0; }
+button { width: 100%; padding: 5px; cursor: pointer; }
+.blue { background: #00bfff; color: #000; } .red { background: #ff4444; color: #000; }
